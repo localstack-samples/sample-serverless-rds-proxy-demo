@@ -1,0 +1,105 @@
+name: Create Infra on LocalStack
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # “At 00:00 on Sunday.”
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  serverless:
+    name: Setup infrastructure using Serverless Framework
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Setup Nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Setup SAM-Local 
+        run: |
+          pip install aws-sam-cli-local
+          samlocal --help
+      
+      - name: Install yq
+        run: |
+          sudo add-apt-repository ppa:rmescandon/yq
+          sudo apt update
+          sudo apt install yq -y
+      
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq -y
+
+      - name: Install dependencies
+        run: |
+          make install
+
+      - name: Start LocalStack
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          DNS_ADDRESS: 0
+        run: |
+          docker pull localstack/localstack-pro:latest
+          # Start LocalStack in the background
+          LS_LOG=trace localstack start -d
+          # Wait 30 seconds for the LocalStack container to become ready before timing out
+          echo "Waiting for LocalStack startup..."
+          localstack wait -t 15
+          echo "Startup complete"
+
+      - name: Deploy the application
+        run: |
+          make deploy
+          
+      - name: Check deployed resources
+        run: |
+          sleep 20
+          samlocal list stack-outputs --stack-name sam-app --region us-east-1  --output json
+
+      - name: Send a Slack notification
+        if: failure() || github.event_name != 'pull_request'
+        uses: ravsamhq/notify-slack-action@v2
+        with:
+          status: ${{ job.status }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          notification_title: "{workflow} has {status_message}"
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}> | <{run_url}|View Workflow run>"
+          notify_when: "failure"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Generate a Diagnostic Report
+        if: failure()
+        run: |
+          curl -s localhost:4566/_localstack/diagnose | gzip -cf > diagnose.json.gz
+
+      - name: Upload the Diagnostic Report
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: diagnose.json.gz
+          path: ./diagnose.json.gz

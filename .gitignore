@@ -246,3 +246,5 @@ $RECYCLE.BIN/
 /.idea/
 /samconfig.toml
 /samconfig-rds.toml
+/output-app.json
+/output-infra.json

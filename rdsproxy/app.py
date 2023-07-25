@@ -2,17 +2,17 @@ import json
 import boto3
 from os import environ
 
-import pymysql
+import psycopg2
 
-
-client = boto3.client('rds')  # get the rds object
+localstackHost = f"http://{environ.get('LOCALSTACK_HOSTNAME')}:{environ.get('EDGE_PORT')}"
+client = boto3.client('rds', endpoint_url=localstackHost)  # get the rds object
 
 
 def create_proxy_connection_token(username):
     # get the required parameters to create a token
     region = environ.get('region')  # get the region
-    hostname = environ.get('rds_endpoint')  # get the rds proxy endpoint
-    port = environ.get('port')  # get the database port
+    hostname = environ.get('LOCALSTACK_HOSTNAME')  # get the rds proxy endpoint
+    port = 4510 # get the database port
 
     # generate the authentication token -- temporary password
     token = client.generate_db_auth_token(
@@ -26,24 +26,21 @@ def create_proxy_connection_token(username):
 
 
 def db_ops():
-    username = environ.get('username')
+    username = "test_iam_user"
 
     token = create_proxy_connection_token(username)
 
     try:
         # create a connection object
-        connection = pymysql.connect(
-            host=environ.get('rds_endpoint'),
-            # getting the rds proxy endpoint from the environment variables
+        connection = psycopg2.connect(
+            host=environ.get('LOCALSTACK_HOSTNAME'),
+            database="mylab",
             user=username,
             password=token,
-            db=environ.get('database'),
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            ssl={"use": True}
+            port= 4510,
         )
-    except pymysql.MySQLError as e:
-        print(e)
+
+    except psycopg2.Error as e:
         return e
 
     return connection
@@ -52,7 +49,7 @@ def db_ops():
 def lambda_handler(event, context):
     conn = db_ops()
     cursor = conn.cursor()
-    query = "select curdate() from dual"
+    query = "SELECT version()"
     cursor.execute(query)
     results = cursor.fetchmany(1)
 
