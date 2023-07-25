@@ -1,34 +1,27 @@
-# Serverless RDS Proxy Demo
+# Serverless RDS Proxy with API Gateway, Lambda, and Aurora
 
 | Key          | Value                                                                |
 | ------------ | -------------------------------------------------------------------- |
 | Environment  | <img src="https://img.shields.io/badge/LocalStack-deploys-4D29B4.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAKgAAACoABZrFArwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAALbSURBVHic7ZpNaxNRFIafczNTGIq0G2M7pXWRlRv3Lusf8AMFEQT3guDWhX9BcC/uFAr1B4igLgSF4EYDtsuQ3M5GYrTaj3Tmui2SpMnM3PlK3m1uzjnPw8xw50MoaNrttl+r1e4CNRv1jTG/+v3+c8dG8TSilHoAPLZVX0RYWlraUbYaJI2IuLZ7KKUWCisgq8wF5D1A3rF+EQyCYPHo6Ghh3BrP8wb1en3f9izDYlVAp9O5EkXRB8dxxl7QBoNBpLW+7fv+a5vzDIvVU0BELhpjJrmaK2NMw+YsIxunUaTZbLrdbveZ1vpmGvWyTOJToNlsuqurq1vAdWPMeSDzwzhJEh0Bp+FTmifzxBZQBXiIKaAq8BBDQJXgYUoBVYOHKQRUER4mFFBVeJhAQJXh4QwBVYeHMQJmAR5GCJgVeBgiYJbg4T8BswYPp+4GW63WwvLy8hZwLcd5TudvBj3+OFBIeA4PD596nvc1iiIrD21qtdr+ysrKR8cY42itCwUP0Gg0+sC27T5qb2/vMunB/0ipTmZxfN//orW+BCwmrGV6vd63BP9P2j9WxGbxbrd7B3g14fLfwFsROUlzBmNM33XdR6Meuxfp5eg54IYxJvXCx8fHL4F3w36blTdDI4/0WREwMnMBeQ+Qd+YC8h4g78wF5D1A3rEqwBiT6q4ubpRSI+ewuhP0PO/NwcHBExHJZZ8PICI/e73ep7z6zzNPwWP1djhuOp3OfRG5kLROFEXv19fXP49bU6TbYQDa7XZDRF6kUUtEtoFb49YUbh/gOM7YbwqnyG4URQ/PWlQ4ASllNwzDzY2NDX3WwioKmBgeqidgKnioloCp4aE6AmLBQzUExIaH8gtIBA/lFrCTFB7KK2AnDMOrSeGhnAJSg4fyCUgVHsolIHV4KI8AK/BQDgHW4KH4AqzCQwEfiIRheKKUAvjuuu7m2tpakPdMmcYYI1rre0EQ1LPo9w82qyNziMdZ3AAAAABJRU5ErkJggg=="> |
-| Services     | API gateway, RDS Proxy, Lambda, Amazon Aurora                                    |
+| Services     | API gateway, RDS Proxy, Lambda, Aurora                                    |
 | Integrations | Serverless Framework, SAM, AWS SDK, Cloudformation     |
 | Categories   | Serverless, Lambda Functions, Load Testing |
 | Level        | Intermediate                                                         |
 | Github       | [Repository link](https://github.com/localstack/sample-serverless-rds-proxy-demo) |     
 
-
 # Introduction
 
-This project demos benefits of using RDS proxy with serverless workload which depends on relational database like RDS Aurora.
-Project shows end to end automated setup of RDS Aurora(PostgreSQL) with RDS proxy. Basic serverless architecture is set up 
-using API gateway HTTP API and Lambda Functions.
+This project demonstrates the advantages of using RDS Proxy in a serverless environment, particularly when working with a relational database like RDS Aurora (PostgreSQL). The goal of this project is to showcase an end-to-end automated setup of RDS Aurora with RDS Proxy, leveraging a basic serverless architecture that includes API Gateway HTTP API and Lambda Functions.
 
-This sample sets up two endpoints with HTTP API, one which talks directly to RDS Aurora cluster and the other one which talks 
-via RDS Proxy. It provides load testing setup to measure the benefits of using RDS proxy in terms of connection pooling 
-and elasticity.
+The provided sample sets up two endpoints using the HTTP API — one that directly communicates with the RDS Aurora cluster and another that communicates via the RDS Proxy. Additionally, a load testing setup is implemented to measure the benefits of using RDS Proxy, focusing on its connection pooling and elasticity capabilities.
 
-This project assumes you already have RDS Aurora PostgreSQL cluster up and running. An RDS proxy instance
-is also setup with force IAM authentication enabled. You can choose to create the RDS cluster with proxy following 
-steps [below](#deploy-rds-aurora-cluster-with-rds-proxy) to have aurora cluster and 
-RDS proxy setup.
+Before proceeding with this project, please ensure that you already have an operational RDS Aurora PostgreSQL cluster. Also, it's essential to have an RDS Proxy instance set up with forced IAM authentication enabled. If you don't have these components ready, you can [refer to the steps below](#deploy-rds-aurora-cluster-with-rds-proxy) to deploy the RDS Aurora cluster with the RDS Proxy.
 
 ## Architecture
 
 The following diagram shows the architecture that this sample application builds and deploys:
-![img.png](images/architecture.png)
+
+![Architecture diagram for Serverless RDS Proxy Demo](images/architecture.png)
 
 We are using the following AWS services to build our infrastructure:
 
@@ -63,61 +56,57 @@ Alternatively, here are instructions to deploy it manually step-by-step.
 
 ### Deploy RDS Aurora Cluster with RDS Proxy
 
-**Note:** If you have already provisioned RDS Aurora cluster with RDS Proxy, you can skip 
-this step and follow [these steps](#deploy-serverless-workload-using-rds-aurora-as-backend) instead.
+**Note:** If you have already provisioned an RDS Aurora cluster with RDS Proxy, you can skip this step and proceed with [these steps](#deploy-serverless-workload-using-rds-aurora-as-backend) instead.
 
-This stack will take care of provisioning RDS Aurora PostgreSQL along with RDS proxy fronting it inside
-a VPC with 3 private subnet. Required parameters needed by [next step](#deploy-serverless-workload-using-rds-aurora-as-backend)
-is also provided as stack output.
+This stack facilitates the seamless provisioning of an RDS Aurora PostgreSQL database, accompanied by an RDS Proxy to serve as its front-end. The entire setup will be securely deployed within a VPC, utilizing three private subnets. The essential parameters required for the [next step](#deploy-serverless-workload-using-rds-aurora-as-backend) are also provided as stack outputs, ensuring a smooth continuation of the deployment process.
 
 ```bash
-    samlocal build -t rds-with-proxy.yaml --use-container
-    samlocal deploy -t rds-with-proxy.yaml --guided
+samlocal build -t rds-with-proxy.yaml --use-container
+samlocal deploy -t rds-with-proxy.yaml --guided
 ```
 ### Deploy serverless workload using RDS Aurora as backend
 
-To build and deploy your application for the first time, run the following in your shell:
-Pass required parameters during guided deploy.
+To initiate the initial build and deployment of your application, execute the following command in your shell:
 
 ```bash
-    samlocal build --use-container
-    samlocal deploy --guided
+samlocal build --use-container
+samlocal deploy --guided
 ```
 
 ### Create a user with `rds_iam` role
 
-To create a user which requires no password and has `rds_iam` role granted use the below command:
+To create a user with no password and grant them the `rds_iam` role, use the following command:
 
 ```bash
-    python create-user.py
+python create-user.py
 ```
 
 ## Load testing
 
 ### Checking your installation
 
-If you used npm to install Artillery globally, run the following command in your preferred command line interface:
+If you have installed Artillery globally using `npm`, run the following command in your preferred command-line interface:
 
+```bash
+artillery dino
 ```
-    artillery dino
-```
 
-You should see an ASCII dinosaur printed to the terminal. Something like this:
+Upon execution, an ASCII dinosaur will be printed to the terminal. It should look something like this:
 
-![img.png](images/artillery.png)
+![Artillery's ASCII dinosaur](images/artillery.png)
 
 ### Testing the application
 
-Before starting with load testing, make sure to update the `target` attribute in the files `load-no-proxy.yml` and  `load-proxy.yml` is update with the 
-created HTTP API endpoint. The endpoint is also provided as stack output `ApiBasePath` when 
-executing [above steps](#deploy-serverless-workload-using-rds-aurora-as-backend). You can generate load on both the APIs via:
+Before proceeding with load testing, it is essential to update the `target` attribute in the files `load-no-proxy.yml` and `load-proxy.yml` with the HTTP API endpoint you have created. You can find the endpoint as the stack output under `ApiBasePath` after executing the [above steps](#deploy-serverless-workload-using-rds-aurora-as-backend).
 
-```
-    artillery run load-no-proxy.yml
+Once the target endpoint is appropriately set, you can generate load on both APIs using the following command:
+
+```bash
+artillery run load-no-proxy.yml
 ```
 
-```
-    artillery run load-proxy.yml
+```bash
+artillery run load-proxy.yml
 ``` 
 
 ### GitHub Actions
