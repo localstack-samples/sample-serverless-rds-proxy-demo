@@ -1,13 +1,18 @@
-import json
 import boto3
+import json
 from os import environ
+from urllib.parse import urlparse
 
 import psycopg2
 
 
-localstackHost = f"http://{environ.get('LOCALSTACK_HOSTNAME')}:{environ.get('EDGE_PORT')}"
-client = boto3.client('rds', endpoint_url=localstackHost)
-sm = boto3.client('secretsmanager', endpoint_url=localstackHost)
+endpoint_url = environ.get("AWS_ENDPOINT_URL")
+url = urlparse(endpoint_url)
+host = url.hostname
+
+client = boto3.client('rds', endpoint_url=endpoint_url)
+sm = boto3.client('secretsmanager', endpoint_url=endpoint_url)
+
 
 def db_ops():
     secret_arn = sm.list_secrets()["SecretList"][0]["ARN"]
@@ -18,7 +23,7 @@ def db_ops():
     try:
         # create a connection object
         connection = psycopg2.connect(
-            host=environ.get('LOCALSTACK_HOSTNAME'),
+            host=host,
             database="mylab",
             user=username,
             password=password,
@@ -41,4 +46,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps(results, default=str)
     }
-    

@@ -9,6 +9,7 @@ localstackHost = "http://localhost:4566"
 client = boto3.client('rds', endpoint_url=localstackHost)
 sm = boto3.client('secretsmanager', endpoint_url=localstackHost)
 
+
 def db_ops():
     secret_arn = sm.list_secrets()["SecretList"][0]["ARN"]
     secret = sm.get_secret_value(SecretId=secret_arn)
