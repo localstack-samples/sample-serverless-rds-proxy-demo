@@ -1,18 +1,22 @@
 import json
 import boto3
 from os import environ
+from urllib.parse import urlparse
 
 import psycopg2
 
-localstackHost = f"http://{environ.get('LOCALSTACK_HOSTNAME')}:{environ.get('EDGE_PORT')}"
-client = boto3.client('rds', endpoint_url=localstackHost)  # get the rds object
+
+endpoint_url = environ.get("AWS_ENDPOINT_URL")
+url = urlparse(endpoint_url)
+hostname = url.hostname
+
+client = boto3.client('rds', endpoint_url=endpoint_url)  # get the rds object
 
 
 def create_proxy_connection_token(username):
     # get the required parameters to create a token
-    region = environ.get('region')  # get the region
-    hostname = environ.get('LOCALSTACK_HOSTNAME')  # get the rds proxy endpoint
-    port = 4510 # get the database port
+    region = environ.get('region')
+    port = 4510 # database port
 
     # generate the authentication token -- temporary password
     token = client.generate_db_auth_token(
@@ -33,7 +37,7 @@ def db_ops():
     try:
         # create a connection object
         connection = psycopg2.connect(
-            host=environ.get('LOCALSTACK_HOSTNAME'),
+            host=hostname,
             database="mylab",
             user=username,
             password=token,
