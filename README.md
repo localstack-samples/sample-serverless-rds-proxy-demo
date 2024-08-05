@@ -39,10 +39,10 @@ We are using the following AWS services to build our infrastructure:
 * [Artillery](https://artillery.io/docs/guides/overview/welcome.html) to generate some load towards both the apis.
 * [`yq`](https://github.com/mikefarah/yq#install) and[`jq`](https://jqlang.github.io/jq/download/) for running the deployment script. 
 
-Start LocalStack Pro with the `LOCALSTACK_API_KEY` pre-configured:
+Start LocalStack Pro with the `LOCALSTACK_AUTH_TOKEN` pre-configured:
 
 ```shell
-export LOCALSTACK_API_KEY=<your-api-key>
+export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
 localstack start
 ```
 
