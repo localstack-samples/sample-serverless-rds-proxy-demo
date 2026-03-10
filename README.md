@@ -32,21 +32,23 @@ We are using the following AWS services to build our infrastructure:
 
 ## Prerequisites
 
-* LocalStack Pro with the [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
+* A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
+* [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
 * [Serverless Application Model](https://docs.localstack.cloud/user-guide/integrations/aws-sam/) with the [samlocal](https://github.com/localstack/aws-sam-cli-local) installed.
 * [Python 3.9 installed](https://www.python.org/downloads/).
 * [Node.js](https://nodejs.org/en/download) with npm package manager.
 * [Artillery](https://artillery.io/docs/guides/overview/welcome.html) to generate some load towards both the apis.
-* [`yq`](https://github.com/mikefarah/yq#install) and[`jq`](https://jqlang.github.io/jq/download/) for running the deployment script. 
+* [`yq`](https://github.com/mikefarah/yq#install) and [`jq`](https://jqlang.github.io/jq/download/) for running the deployment script.
 
-Start LocalStack Pro with the `LOCALSTACK_AUTH_TOKEN` pre-configured:
+## Start LocalStack
+
+Start LocalStack with the `LOCALSTACK_AUTH_TOKEN` pre-configured:
 
 ```shell
 export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
-localstack start
+make start
+make ready
 ```
-
-> If you prefer running LocalStack in detached mode, you can add the `-d` flag to the `localstack start` command, and use Docker Desktop to view the logs.
 
 ## Instructions
 
