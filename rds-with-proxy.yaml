@@ -12,9 +12,9 @@ Mappings:
   ClusterSettings:
     global:
       dbSchema: mylab
-      dbVersion: "13.4"
+      dbVersion: "13.16"
       dbEngine: aurora-postgresql
-      dbFamily: aurora-postgresql13.4
+      dbFamily: aurora-postgresql13
       port: 4510
       nodeType: db.r5.large
 
@@ -166,16 +166,14 @@ Resources:
   pgNodeParams:
     Type: "AWS::RDS::DBParameterGroup"
     Properties:
-      Description: !Sub "${AWS::StackName}-mysql-node-params"
+      Description: !Sub "${AWS::StackName}-postgres-node-params"
       Family: !FindInMap [ ClusterSettings, global, dbFamily ]
       Parameters:
-        innodb_stats_persistent_sample_pages: "256"
-        slow_query_log: "1"
-        long_query_time: "10"
-        log_output: FILE
+        log_min_duration_statement: "10000"
+        log_statement: "ddl"
       Tags:
         - Key: Name
-          Value: !Sub "${AWS::StackName}-mysql-node-params"
+          Value: !Sub "${AWS::StackName}-postgres-node-params"
   dbSubnets:
     Type: "AWS::RDS::DBSubnetGroup"
     Properties:
@@ -199,8 +197,7 @@ Resources:
       DatabaseName: !FindInMap [ ClusterSettings, global, dbSchema ]
       StorageEncrypted: true
       VpcSecurityGroupIds: [ !Ref dbClusterSecGroup ]
-      EnableCloudwatchLogsExports: [ error, slowquery ]
-      BacktrackWindow: 86400
+      EnableCloudwatchLogsExports: [ postgresql ]
       EnableIAMDatabaseAuthentication: true
       PubliclyAccessible: true
       Tags:
@@ -273,7 +270,7 @@ Resources:
       Auth:
         - { AuthScheme: SECRETS, SecretArn: !Ref secretClusterMasterUser, IAMAuth: REQUIRED }
       DBProxyName: 'rds-proxy'
-      EngineFamily: 'MYSQL'
+      EngineFamily: 'POSTGRESQL'
       RoleArn: !GetAtt dbProxyRole.Arn
       IdleClientTimeout: 120
       RequireTLS: true
