@@ -44,9 +44,9 @@ jobs:
       
       - name: Install yq
         run: |
-          sudo add-apt-repository ppa:rmescandon/yq
-          sudo apt update
-          sudo apt install yq -y
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
       
       - name: Install jq
         run: |
@@ -78,6 +78,22 @@ jobs:
         run: |
           sleep 20
           samlocal list stack-outputs --stack-name sam-app --region us-east-1  --output json
+
+      - name: Run integration tests
+        run: |
+          set -euo pipefail
+          api_id=$(samlocal list stack-outputs --stack-name sam-app --region us-east-1 --output json \
+            | jq -r '.[] | select(.OutputKey=="ApiBasePath") | .OutputValue' \
+            | sed -E 's#https?://##; s#\..*##')
+          base="https://${api_id}.execute-api.localhost.localstack.cloud:4566"
+          echo "API base: $base"
+
+          for path in /no-proxy /proxy; do
+            echo "GET $path"
+            body=$(curl -fsS --retry 5 --retry-delay 3 --retry-connrefused "${base}${path}")
+            echo "  -> $body"
+            echo "$body" | grep -q PostgreSQL || { echo "::error::$path did not return a PostgreSQL row"; exit 1; }
+          done
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
