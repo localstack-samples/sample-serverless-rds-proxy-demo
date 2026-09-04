@@ -32,9 +32,9 @@ We are using the following AWS services to build our infrastructure:
 
 ## Prerequisites
 
-* A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
-* [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
-* [Serverless Application Model](https://docs.localstack.cloud/user-guide/integrations/aws-sam/) with the [samlocal](https://github.com/localstack/aws-sam-cli-local) installed.
+* A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/aws/getting-started/auth-token/) to activate LocalStack.
+* [`lstk` CLI](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/), installed via `npm install -g @localstack/lstk` or `brew install localstack/tap/lstk`.
+* [Serverless Application Model](https://docs.localstack.cloud/user-guide/integrations/aws-sam/), used via the `lstk sam` proxy.
 * [Python 3.9 installed](https://www.python.org/downloads/).
 * [Node.js](https://nodejs.org/en/download) with npm package manager.
 * [Artillery](https://artillery.io/docs/guides/overview/welcome.html) to generate some load towards both the apis.
@@ -47,7 +47,6 @@ Start LocalStack with the `LOCALSTACK_AUTH_TOKEN` pre-configured:
 ```shell
 export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
 make start
-make ready
 ```
 
 ## Instructions
@@ -63,16 +62,16 @@ Alternatively, here are instructions to deploy it manually step-by-step.
 This stack facilitates the seamless provisioning of an RDS Aurora PostgreSQL database, accompanied by an RDS Proxy to serve as its front-end. The entire setup will be securely deployed within a VPC, utilizing three private subnets. The essential parameters required for the [next step](#deploy-serverless-workload-using-rds-aurora-as-backend) are also provided as stack outputs, ensuring a smooth continuation of the deployment process.
 
 ```bash
-samlocal build -t rds-with-proxy.yaml --use-container
-samlocal deploy -t rds-with-proxy.yaml --guided
+lstk sam build -t rds-with-proxy.yaml --use-container
+lstk sam deploy -t rds-with-proxy.yaml --guided
 ```
 ### Deploy serverless workload using RDS Aurora as backend
 
 To initiate the initial build and deployment of your application, execute the following command in your shell:
 
 ```bash
-samlocal build --use-container
-samlocal deploy --guided
+lstk sam build --use-container
+lstk sam deploy --guided
 ```
 
 ### Create a user with `rds_iam` role
