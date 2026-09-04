@@ -1,11 +1,11 @@
-samlocal deploy -t rds-with-proxy.yaml\
+lstk sam deploy -t rds-with-proxy.yaml\
     --stack-name sam-infra \
     --region us-east-1 \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset 
 
-samlocal list stack-outputs \
+lstk sam list stack-outputs \
     --stack-name sam-infra \
     --region us-east-1 \
     --output json > output-infra.json
@@ -19,8 +19,8 @@ database_port=$(jq -r '.[] | select(.OutputKey=="databasePort") | .OutputValue' 
 secret_arn=$(jq -r '.[] | select(.OutputKey=="secretArn") | .OutputValue' output-infra.json)
 lambda_sg_group_id=$(jq -r '.[] | select(.OutputKey=="lambdaSgGroupId") | .OutputValue' output-infra.json)
 
-samlocal build --use-container
-samlocal deploy \
+lstk sam build --use-container
+lstk sam deploy \
     --stack-name sam-app \
     --region us-east-1 \
     --capabilities CAPABILITY_IAM \
@@ -38,7 +38,7 @@ samlocal deploy \
         CreateFunctionSecurityGroup=True \
         LambdaSecurityGroupId=$lambda_sg_group_id
 
-samlocal list stack-outputs \
+lstk sam list stack-outputs \
     --stack-name sam-app \
     --region us-east-1 \
     --output json > output-app.json

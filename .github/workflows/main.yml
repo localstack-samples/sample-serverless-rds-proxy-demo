@@ -37,10 +37,10 @@ jobs:
         with:
           use-installer: true
 
-      - name: Setup SAM-Local 
+      - name: Install lstk
         run: |
-          pip install aws-sam-cli-local
-          samlocal --help
+          npm install -g @localstack/lstk
+          sam --version
       
       - name: Install yq
         run: |
@@ -60,15 +60,10 @@ jobs:
       - name: Start LocalStack
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-          DNS_ADDRESS: 0
+          LOCALSTACK_DNS_ADDRESS: 0
         run: |
           docker pull localstack/localstack-pro:latest
-          # Start LocalStack in the background
-          LS_LOG=trace LOCALSTACK_AUTH_TOKEN=$LOCALSTACK_AUTH_TOKEN localstack start -d
-          # Wait 30 seconds for the LocalStack container to become ready before timing out
-          echo "Waiting for LocalStack startup..."
-          localstack wait -t 15
-          echo "Startup complete"
+          LOCALSTACK_LS_LOG=trace lstk start
 
       - name: Deploy the application
         run: |
@@ -77,12 +72,12 @@ jobs:
       - name: Check deployed resources
         run: |
           sleep 20
-          samlocal list stack-outputs --stack-name sam-app --region us-east-1  --output json
+          lstk sam list stack-outputs --stack-name sam-app --region us-east-1  --output json
 
       - name: Run integration tests
         run: |
           set -euo pipefail
-          api_id=$(samlocal list stack-outputs --stack-name sam-app --region us-east-1 --output json \
+          api_id=$(lstk sam list stack-outputs --stack-name sam-app --region us-east-1 --output json \
             | jq -r '.[] | select(.OutputKey=="ApiBasePath") | .OutputValue' \
             | sed -E 's#https?://##; s#\..*##')
           base="https://${api_id}.execute-api.localhost.localstack.cloud:4566"
